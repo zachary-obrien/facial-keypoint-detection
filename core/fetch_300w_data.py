@@ -35,7 +35,9 @@ def import_300lw_data():
     print(len(ds_train[0]))
 
 
-    num_entries = 61226
+    #num_entries = 61226
+    num_entries = 6226
+
     percent = int(num_entries / 100)
     train_percent = 80
     out_size = (256, 256)

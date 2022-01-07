@@ -1,3 +1,7 @@
-matplotlib==3.0.3
-opencv-python
+matplotlib
+opencv
 keras
+pillow
+scipy
+# conda install -c apple tensorflow-deps
+# pip install tensorflow-macos tensorflow-metal jupyterlab

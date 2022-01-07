@@ -111,7 +111,7 @@ def LinearLayer(inputs, filters):
 
 def StackedHourglassNetwork(
         input_shape=(256, 256, 3), num_stack=4, num_residual=1,
-        num_heatmap=16):
+        num_heatmap=68):
     """
     https://github.com/princeton-vl/pose-hg-train/blob/master/src/models/hg.lua#L33
     """

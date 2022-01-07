@@ -3,14 +3,14 @@ import numpy as np
 import tensorflow as tf
 from tqdm import tqdm
 from hourglass import StackedHourglassNetwork
-from binary_hourglass import binary_stacked_hourglass
+# from binary_hourglass import binary_stacked_hourglass
 import keras
 import imageio
 import imgaug as ia
 import imgaug.augmenters as iaa
 from imgaug.augmentables.kps import Keypoint, KeypointsOnImage
 from imgaug.augmentables.batches import UnnormalizedBatch
-import torchfile
+#import torchfile
 from multiprocessing import Pool
 from PIL import Image
 from scipy.stats import multivariate_normal
@@ -18,7 +18,8 @@ import json
 import os
 from collections import defaultdict
 from matplotlib.pyplot import imshow
-from tensorflow.math import pow, log, abs, cumsum, reduce_sum, greater, reduce_mean
+from numpy import log
+from tensorflow import pow, abs, cumsum, reduce_sum, greater, reduce_mean
 import cv2
 import random
 
@@ -30,26 +31,27 @@ import random
     needed for training models.
 """
 
+data_folder = '/Users/zacharyobrien/thesis_work/thesis_dataset/'
 # loads the paths from to the training and validation data
 def load_filenames():
-    #return list(range(len(os.listdir('./data/preprocessed_training/')) // 2))
+    # return list(range(len(os.listdir('./data/preprocessed_training/')) // 2))
     nums = defaultdict(bool)
 
-    for f in os.listdir('./data/training/'):
+    for f in os.listdir(data_folder + 'train/'):
         num = f[:-4]
         nums[num] = True
         
-    train = ['./data/training/' + f for f in list(nums.keys())]
+    train = [data_folder + 'train/' + f for f in list(nums.keys())]
     
     nums = defaultdict(bool)
 
-    for f in os.listdir('./data/testing/'):
+    for f in os.listdir(data_folder + 'test/'):
         #num = re.search('(.+)\..{2,3}', f)[1]
         num = f[:-4]
         nums[num] = True
     
     
-    return train, ['./data/testing/' + f for f in list(nums.keys())]
+    return train, [data_folder + 'test/' + f for f in list(nums.keys())]
 
 # loss function that helps learning with heatmaps
 # the issue with using MSE on the heatmaps is that most of the values are
@@ -142,7 +144,7 @@ class train_generator(keras.utils.Sequence):
         # the parameters are saved and loaded from a json because tf
         # requires the generator to be instantiated with zero arguments
         # in order to convert it to a tf.dataset
-        with open('./data/train_params.json') as f:
+        with open(data_folder + 'train_params.json') as f:
             params = json.load(f)
         self.ids = params['ids']
         self.batch_size = params['batch_size']
@@ -244,7 +246,7 @@ class train_generator(keras.utils.Sequence):
 # and does less augmentation (just crops and resizes to fit model)
 class val_generator(keras.utils.Sequence):
     def __init__(self):
-        with open('./data/val_params.json') as f:
+        with open(data_folder + 'val_params.json') as f:
             params = json.load(f)
         self.ids = params['ids']
         self.batch_size = params['batch_size']
@@ -405,7 +407,7 @@ def extract_frames(filename):
 # predicted by the model plotted on them
 class gifCallback(keras.callbacks.Callback):
     def __init__(self):
-        frames, _ = extract_frames('./data/test_video.mp4')
+        frames, _ = extract_frames(data_folder + 'test_video.mp4')
         self.frames = frames
         super().__init__()
 
@@ -436,7 +438,7 @@ def scheduler(epoch, lr):
 # each record low validation loss, and the custom gifCallback
 callbacks = [tf.keras.callbacks.LearningRateScheduler(scheduler),
             tf.keras.callbacks.ModelCheckpoint(
-                './data/models/weights.40k_{epoch:02d}-{val_loss:.2f}.hdf5',
+                data_folder + 'models/weights.40k_{epoch:02d}-{val_loss:.2f}.hdf5',
                 monitor="val_loss",
                 save_weights_only=True,
                 verbose=1,
@@ -485,8 +487,8 @@ val_params = {
     'batch_size': batch_size,
     'image_shape': image_shape
 }
-json.dump(train_params, open('./data/train_params.json', 'w'))
-json.dump(val_params, open('./data/val_params.json', 'w'))
+json.dump(train_params, open(data_folder + 'train_params.json', 'w'))
+json.dump(val_params, open(data_folder + 'val_params.json', 'w'))
 
 # train the model
 model.fit(interleaved_train,
